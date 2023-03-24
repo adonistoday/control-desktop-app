@@ -65,6 +65,7 @@ namespace InteractionApp
         public Form1()
         {
             InitializeComponent();
+
             this.MinimumSize = new Size(Screen.PrimaryScreen.Bounds.Width * 5 / 20, Screen.PrimaryScreen.Bounds.Height * 5 / 20);
             this.MaximumSize = new Size(Screen.PrimaryScreen.Bounds.Width * 20 / 20, Screen.PrimaryScreen.Bounds.Height * 20 / 20);
             this.StartPosition = FormStartPosition.Manual; // set the start position to manual
@@ -100,7 +101,36 @@ namespace InteractionApp
 
             grammarBuilder.Append(new Choices(words));
 
+            //// Create "File" menu
+            //ToolStripMenuItem fileMenu = new ToolStripMenuItem("Model");
 
+            //// Create "New" submenu item
+            //ToolStripMenuItem newSubMenu = new ToolStripMenuItem("small");
+            //fileMenu.DropDownItems.Add(newSubMenu);
+
+            //// Create "Open" submenu item
+            //ToolStripMenuItem openSubMenu = new ToolStripMenuItem("medium");
+            //fileMenu.DropDownItems.Add(openSubMenu);
+
+            //// Add "File" menu to MenuStrip control
+            //menuStrip.Items.Add(fileMenu);
+          //  GroupBox groupBox1 = new GroupBox();
+            //RadioButton radioButton1 = new RadioButton();
+            //RadioButton radioButton2 = new RadioButton();
+
+         //   groupBox1.Controls.Add(radioButton1);
+         //   groupBox1.Controls.Add(radioButton2);
+
+            //radioButton1.Text = "Option 1";
+            //radioButton1.GroupName = "myRadioGroup";
+
+            //radioButton2.Text = "Option 2";
+            //radioButton2.GroupName = "myRadioGroup";
+
+            // optionally set radio button 1 as selected
+            //radioButton1.Checked = true;
+
+           // this.Controls.Add(groupBox1);
             // Get the primary screen
             Screen primaryScreen = Screen.PrimaryScreen;
 
@@ -117,6 +147,7 @@ namespace InteractionApp
             richTextBox1.Location = new Point((panel3.Width - richTextBox1.Width) / 2, (panel3.Height - richTextBox1.Height) / 2);
             int[] columnWidths = { 1 };
             richTextBox1.SelectionTabs = columnWidths;
+            richTextBox1.ScrollBars = RichTextBoxScrollBars.None;
             button1.Size = new Size(richTextBox1.Width / 25, richTextBox1.Height * 3 / 4);
             button1.Location = new Point(richTextBox1.Location.X + richTextBox1.Width - button1.Width * 5 / 4, richTextBox1.Location.Y + richTextBox1.Height / 8);
             button2.Size = new Size(panel2.Width * 9 / 10, panel2.Height / 20);
@@ -202,7 +233,7 @@ namespace InteractionApp
             panel3.BackColor = Color.FromArgb(52, 54, 64);
             panel3.ForeColor = Color.FromArgb(31, 31, 33);
             richTextBox1.SelectionCharOffset = -10;
-
+            
             panel2.BackColor = Color.FromArgb(32, 33, 35);
             panel2.AutoScroll = true;
             panel1.BackColor = Color.FromArgb(68, 70, 84);
@@ -1137,38 +1168,38 @@ namespace InteractionApp
         }
         private void button3_Click(object sender, EventArgs e)
         {
-            //var waveIn = new NAudio.Wave.WaveInEvent
-            //{
-            //    DeviceNumber = 0, // indicates which microphone to use
-            //    WaveFormat = new NAudio.Wave.WaveFormat(rate: 44100, bits: 16, channels: 1),
-            //    BufferMilliseconds = 200
-            //};
-            //waveIn.DataAvailable += WaveIn_DataAvailable;
-            //if (flag==true)
-            //{
+            string fileName1 = @"C:\Users\KGH\PycharmProjects\speechRec\main.py";
+            string fileName2 = @"C:\Users\KGH\PycharmProjects\speechRec\main1.py";
+            Process p = new Process();
+            if (radioButton1.Checked)
+            {
+                p.StartInfo = new ProcessStartInfo(@"C:\Users\KGH\AppData\Local\Programs\Python\Python37\python.exe", fileName1)
+                {
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
 
-            //    waveIn.StartRecording();
+            }
+            else
+            {
+                p.StartInfo = new ProcessStartInfo(@"C:\Users\KGH\AppData\Local\Programs\Python\Python37\python.exe", fileName2)
+                {
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+            }
+            
 
-            //    // Create a grammar builder and add a phrase to it.
-            //    //grammarBuilder.AppendDictation();
-            //    Grammar grammar = new Grammar(grammarBuilder);
-            //    recognizer.LoadGrammar(grammar);
-            //    recognizer.SetInputToDefaultAudioDevice();
-            //    recognizer.SpeechRecognized += Recognizer_SpeechRecognized;
-            //    recognizer.RecognizeCompleted += Recognizer_RecognizeCompleted;
+            p.Start();
 
-            //    // Start recognition.
-            //    recognizer.RecognizeAsync(RecognizeMode.Multiple);
-            //    flag = false;
-            //}
-            //else
-            //{
-            //    flag = true;
-            //    recognizer.RecognizeAsyncCancel();
-            //    //waveIn.StopRecording();
-                
-            //}
-           
+            string output = p.StandardOutput.ReadToEnd();
+            string newString = output.Replace("\n", "");
+            newString = newString.Replace("\r", "");
+            richTextBox1.Text = newString;
+            p.WaitForExit();
+
         }
         private void Recognizer_RecognizeCompleted(object sender, RecognizeCompletedEventArgs e)
         {
