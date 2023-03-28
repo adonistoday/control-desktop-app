@@ -36,10 +36,9 @@ namespace InteractionApp
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.button1 = new System.Windows.Forms.Button();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.button4 = new System.Windows.Forms.Button();
             this.panel4 = new System.Windows.Forms.Panel();
             this.button3 = new System.Windows.Forms.Button();
-            this.radioButton1 = new System.Windows.Forms.RadioButton();
-            this.radioButton2 = new System.Windows.Forms.RadioButton();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             this.SuspendLayout();
@@ -104,9 +103,8 @@ namespace InteractionApp
             // 
             // panel3
             // 
-            this.panel3.Controls.Add(this.radioButton2);
+            this.panel3.Controls.Add(this.button4);
             this.panel3.Controls.Add(this.panel4);
-            this.panel3.Controls.Add(this.radioButton1);
             this.panel3.Controls.Add(this.button3);
             this.panel3.Controls.Add(this.button1);
             this.panel3.Controls.Add(this.richTextBox1);
@@ -114,6 +112,18 @@ namespace InteractionApp
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(1043, 126);
             this.panel3.TabIndex = 7;
+            // 
+            // button4
+            // 
+            this.button4.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.button4.Location = new System.Drawing.Point(3, 41);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(40, 34);
+            this.button4.TabIndex = 6;
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            this.button4.MouseEnter += new System.EventHandler(this.button4_MouseEnter);
+            this.button4.MouseLeave += new System.EventHandler(this.button4_MouseLeave);
             // 
             // panel4
             // 
@@ -137,36 +147,12 @@ namespace InteractionApp
             this.button3.MouseEnter += new System.EventHandler(this.button3_MouseEnter);
             this.button3.MouseLeave += new System.EventHandler(this.button3_MouseLeave);
             // 
-            // radioButton1
-            // 
-            this.radioButton1.AutoSize = true;
-            this.radioButton1.Checked = true;
-            this.radioButton1.ForeColor = System.Drawing.SystemColors.Info;
-            this.radioButton1.Location = new System.Drawing.Point(19, 15);
-            this.radioButton1.Name = "radioButton1";
-            this.radioButton1.Size = new System.Drawing.Size(50, 17);
-            this.radioButton1.TabIndex = 0;
-            this.radioButton1.TabStop = true;
-            this.radioButton1.Text = "Small";
-            this.radioButton1.UseVisualStyleBackColor = true;
-            // 
-            // radioButton2
-            // 
-            this.radioButton2.AutoSize = true;
-            this.radioButton2.ForeColor = System.Drawing.SystemColors.Info;
-            this.radioButton2.Location = new System.Drawing.Point(129, 15);
-            this.radioButton2.Name = "radioButton2";
-            this.radioButton2.Size = new System.Drawing.Size(62, 17);
-            this.radioButton2.TabIndex = 1;
-            this.radioButton2.Text = "Medium";
-            this.radioButton2.UseVisualStyleBackColor = true;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(1392, 787);
+            this.ClientSize = new System.Drawing.Size(1370, 749);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
@@ -178,7 +164,6 @@ namespace InteractionApp
             this.SizeChanged += new System.EventHandler(this.Form1_SizeChanged);
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
-            this.panel3.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -192,8 +177,7 @@ namespace InteractionApp
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Panel panel4;
-        private System.Windows.Forms.RadioButton radioButton2;
-        private System.Windows.Forms.RadioButton radioButton1;
+        private System.Windows.Forms.Button button4;
     }
 }
 

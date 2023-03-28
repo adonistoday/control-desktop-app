@@ -32,13 +32,24 @@ using OpenQA.Selenium.Remote;
 using Polly;
 using System.Threading.Tasks;
 using Xamarin.Forms.PlatformConfiguration.iOSSpecific;
+using Vosk;
+using System.Text.Json;
+using System.Text.Encodings.Web;
+using System.Activities.Expressions;
+using System.Windows.Threading;
 
 namespace InteractionApp
 {
-    
+
+
+  
     public partial class Form1 : Form
     {
+        Model model;
+        static VoskRecognizer rec;
+        static WaveFileWriter writer;
         public static string gstr;
+        
         IWebDriver driver = null;
         PictureBox[] pb1 = new PictureBox[20];
         int[] size = new int[20];
@@ -52,7 +63,7 @@ namespace InteractionApp
         SQLiteConnection sqlitecon;
         int sh;
         List<string>[] list = new List<string>[4];
-        List<string>[] cmds = new List<string>[3]; 
+        List<string>[] cmds = new List<string>[3];
         int selid;
         bool newC = true;
         // Define the constants used by the ShowWindow function
@@ -82,6 +93,7 @@ namespace InteractionApp
             for (int i = 0; i < words.Length; i++)
             {
                 words[i] = "chrome";
+                
             }
             if (File.Exists(filePath))
             {
@@ -114,12 +126,12 @@ namespace InteractionApp
 
             //// Add "File" menu to MenuStrip control
             //menuStrip.Items.Add(fileMenu);
-          //  GroupBox groupBox1 = new GroupBox();
+            //  GroupBox groupBox1 = new GroupBox();
             //RadioButton radioButton1 = new RadioButton();
             //RadioButton radioButton2 = new RadioButton();
 
-         //   groupBox1.Controls.Add(radioButton1);
-         //   groupBox1.Controls.Add(radioButton2);
+            //   groupBox1.Controls.Add(radioButton1);
+            //   groupBox1.Controls.Add(radioButton2);
 
             //radioButton1.Text = "Option 1";
             //radioButton1.GroupName = "myRadioGroup";
@@ -130,7 +142,7 @@ namespace InteractionApp
             // optionally set radio button 1 as selected
             //radioButton1.Checked = true;
 
-           // this.Controls.Add(groupBox1);
+            // this.Controls.Add(groupBox1);
             // Get the primary screen
             Screen primaryScreen = Screen.PrimaryScreen;
 
@@ -154,7 +166,9 @@ namespace InteractionApp
             button2.Location = new Point((panel2.Width - button2.Width) / 2, button2.Height / 4);
             button3.Size = new Size(richTextBox1.Width / 15, richTextBox1.Height * 4 / 4);
             button3.Location = new Point(richTextBox1.Location.X - button1.Width * 2, richTextBox1.Location.Y);
-
+            button4.Size = new Size(richTextBox1.Width / 15, richTextBox1.Height * 4 / 4);
+            button4.Location = new Point(richTextBox1.Location.X - button1.Width * 4, richTextBox1.Location.Y);
+           
             button1.ForeColor = Color.White;
             button1.FlatStyle = FlatStyle.Flat;
             button1.FlatAppearance.BorderSize = 0;
@@ -190,6 +204,24 @@ namespace InteractionApp
                 path1.AddArc(0, height - cornerRadius1, cornerRadius1, cornerRadius1, 90, 90);
                 path1.CloseFigure();
                 button3.Region = new Region(path1);
+            };
+            button4.BackgroundImage = Image.FromFile(System.IO.Path.Combine(System.Windows.Forms.Application.StartupPath, "icons8-model-64.png"));
+
+            button4.BackColor = Color.FromArgb(68, 70, 84);
+            button4.FlatStyle = FlatStyle.Flat;
+            button4.FlatAppearance.BorderSize = 0;
+            button4.Paint += (sender, e) =>
+            {
+                GraphicsPath path1 = new GraphicsPath();
+                int cornerRadius1 = 2;
+                int width = button4.Width;
+                int height = button4.Height;
+                path1.AddArc(0, 0, cornerRadius1, cornerRadius1, 180, 90);
+                path1.AddArc(width - cornerRadius1, 0, cornerRadius1, cornerRadius1, 270, 90);
+                path1.AddArc(width - cornerRadius1, height - cornerRadius1, cornerRadius1, cornerRadius1, 0, 90);
+                path1.AddArc(0, height - cornerRadius1, cornerRadius1, cornerRadius1, 90, 90);
+                path1.CloseFigure();
+                button4.Region = new Region(path1);
             };
             button2.Text = "   +   New chat";
             button2.TextAlign = ContentAlignment.MiddleLeft;
@@ -233,7 +265,7 @@ namespace InteractionApp
             panel3.BackColor = Color.FromArgb(52, 54, 64);
             panel3.ForeColor = Color.FromArgb(31, 31, 33);
             richTextBox1.SelectionCharOffset = -10;
-            
+
             panel2.BackColor = Color.FromArgb(32, 33, 35);
             panel2.AutoScroll = true;
             panel1.BackColor = Color.FromArgb(68, 70, 84);
@@ -275,7 +307,7 @@ namespace InteractionApp
                 Panel subpanel1 = new Panel();
                 for (int i = 0; i < cnt; i++)
                 {
-                    sh += (3*height);
+                    sh += (3 * height);
                 }
                 subpanel1.Location = new Point(0, sh);
 
@@ -283,7 +315,7 @@ namespace InteractionApp
 
 
 
-                subpanel1.Size = new Size(panel1.Size.Width, height*3 );
+                subpanel1.Size = new Size(panel1.Size.Width, height * 3);
                 subpanel1.BackColor = Color.FromArgb(52, 53, 65);
                 label1.Size = new Size(width, height);
                 label1.Location = new Point((subpanel1.Width) / 4 + 40, (subpanel1.Height - label1.Height) / 2);
@@ -326,7 +358,7 @@ namespace InteractionApp
                 insertReq(tstr);
                 requestView(tstr);
                 this.Cursor = Cursors.WaitCursor;
-                gstr= tstr;
+                gstr = tstr;
                 Task task1 = Task.Factory.StartNew(() => doStuff());
                 Task.WaitAll(task1);
                 this.Cursor = Cursors.Default;
@@ -344,8 +376,8 @@ namespace InteractionApp
         }
         private void databaseConnect()
         {
-           sqlitecon = new SQLiteConnection("Data Source=MyDatabase.sqlite;Version=3;");
-           sqlitecon.Open();
+            sqlitecon = new SQLiteConnection("Data Source=MyDatabase.sqlite;Version=3;");
+            sqlitecon.Open();
             // Assuming you have a connection to your SQLite database:
             SQLiteCommand command = new SQLiteCommand("SELECT * FROM cmdlog LIMIT 1", sqlitecon);
 
@@ -383,8 +415,8 @@ namespace InteractionApp
                 cn++;
                 list[0].Add(reader["id"] + "");
                 list[1].Add(reader["title"] + "");
-                list[2].Add(reader["created_at"]+"");
-                list[3].Add(reader["updated_at"]+"");
+                list[2].Add(reader["created_at"] + "");
+                list[3].Add(reader["updated_at"] + "");
                 // Process the data
             }
             if (cn > 0) selid = int.Parse(list[0][0]);
@@ -392,10 +424,10 @@ namespace InteractionApp
             cnt1 = 0;
             for (int i = 0; i < Count(); i++)
             {
-                drawchatlist(int.Parse(list[0][i]),list[1][i]);
+                drawchatlist(int.Parse(list[0][i]), list[1][i]);
                 cnt1++;
             }
-            
+
         }
         public int Count()
         {
@@ -407,25 +439,25 @@ namespace InteractionApp
             //Create Mysql Command
             SQLiteCommand cmd = new SQLiteCommand(query, sqlitecon);
 
-                //ExecuteScalar will return one value
-                Count = int.Parse(cmd.ExecuteScalar() + "");
+            //ExecuteScalar will return one value
+            Count = int.Parse(cmd.ExecuteScalar() + "");
 
-                //close Connection
-                return Count;
-            
+            //close Connection
+            return Count;
+
         }
         public void insert(string title)
         {
             //DateTime dateToInsert = DateTime.Now;
             string dateToInsert = DateTime.Now.ToString();
-             SQLiteCommand command = new SQLiteCommand("INSERT INTO cmdlog (title,created_at) VALUES (@title,@DateValue)", sqlitecon);
-             command.Parameters.AddWithValue("@DateValue", dateToInsert);
+            SQLiteCommand command = new SQLiteCommand("INSERT INTO cmdlog (title,created_at) VALUES (@title,@DateValue)", sqlitecon);
+            command.Parameters.AddWithValue("@DateValue", dateToInsert);
             command.Parameters.AddWithValue("@title", title);
             int lastInsertedId = Convert.ToInt32(command.ExecuteScalar());
         }
         public void delete(int id)
         {
-            
+
             using (var command = new SQLiteCommand("DELETE FROM cmdlog WHERE id = @id", sqlitecon))
             {
                 // Set the value of the parameter
@@ -433,9 +465,9 @@ namespace InteractionApp
 
                 // Execute the command
                 int rowsDeleted = command.ExecuteNonQuery();
-               // Console.WriteLine("Rows deleted: " + rowsDeleted);
+                // Console.WriteLine("Rows deleted: " + rowsDeleted);
             }
-            
+
             using (var command = new SQLiteCommand("DELETE FROM commands WHERE log_id = @id", sqlitecon))
             {
                 // Set the value of the parameter
@@ -471,9 +503,9 @@ namespace InteractionApp
         }
         public void insertReq(string req)
         {
-           // string dateToInsert = DateTime.Now.ToString();
+            // string dateToInsert = DateTime.Now.ToString();
             SQLiteCommand command = new SQLiteCommand("INSERT INTO commands (content,log_id) VALUES (@req,@logid)", sqlitecon);
-          //  command.Parameters.AddWithValue("@DateValue", dateToInsert);
+            //  command.Parameters.AddWithValue("@DateValue", dateToInsert);
             command.Parameters.AddWithValue("@req", req);
             command.Parameters.AddWithValue("@logid", selid);
             command.ExecuteNonQuery();
@@ -502,7 +534,7 @@ namespace InteractionApp
                     //Console.WriteLine("ID: " + id + ", Name: " + name);
                 }
             }
-            for(int i=0;i<num;i++)
+            for (int i = 0; i < num; i++)
             {
                 requestView(list[1][i]);
             }
@@ -519,7 +551,7 @@ namespace InteractionApp
         {
             newC = true;
             cnt = 0;
-            
+
             panel1.Controls.Clear();
             foreach (Panel p in panel2.Controls.OfType<Panel>())
             {
@@ -531,7 +563,7 @@ namespace InteractionApp
                 panels1[i].Controls.Clear();
 
             }*/
-            
+
         }
         void drawchatlist(int id, string title)
         {
@@ -555,7 +587,7 @@ namespace InteractionApp
             {
                 subpanel2.BackColor = Color.FromArgb(32, 33, 35);
             }
-            
+
             System.Drawing.Drawing2D.GraphicsPath path = new System.Drawing.Drawing2D.GraphicsPath();
             int cornerRadius = 10;
             int x = subpanel2.Width;
@@ -581,8 +613,8 @@ namespace InteractionApp
             subpanel2.Controls.Add(label1);
 
             PictureBox pBdel = new PictureBox();
-            pBdel.Size = new Size(Screen.PrimaryScreen.Bounds.Width/70 , Screen.PrimaryScreen.Bounds.Height/50);
-            pBdel.Location = new Point(subpanel2.Width*17/20, (subpanel2.Height - label1.Height) / 2);
+            pBdel.Size = new Size(Screen.PrimaryScreen.Bounds.Width / 70, Screen.PrimaryScreen.Bounds.Height / 50);
+            pBdel.Location = new Point(subpanel2.Width * 17 / 20, (subpanel2.Height - label1.Height) / 2);
 
             pBdel.SizeMode = PictureBoxSizeMode.StretchImage;
             string imagePath = "icons8-waste-24.png";
@@ -698,7 +730,7 @@ namespace InteractionApp
 
             panel2.Controls.Add(subpanel2);
             //cnt1++;
-            
+
             richTextBox1.Text = "";
         }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -707,7 +739,7 @@ namespace InteractionApp
             {
                 e.Cancel = true; // Cancel the form closing event 
             }
-            if(driver!=null) driver.Dispose();
+            if (driver != null) driver.Dispose();
         }
 
         private void button1_MouseEnter(object sender, EventArgs e)
@@ -727,14 +759,14 @@ namespace InteractionApp
         {
             //insert("Log History" + cnt1.ToString());
             insert(title);
-            int id=0;
+            int id = 0;
             SQLiteCommand command = sqlitecon.CreateCommand();
             command.CommandText = "SELECT * FROM cmdlog WHERE title=@title";
             command.Parameters.AddWithValue("@title", title);
-            selid =int.Parse( command.ExecuteScalar()+"");
+            selid = int.Parse(command.ExecuteScalar() + "");
             id = selid;
             //drawchatlist(id,"Log History"+cnt1.ToString());
-            drawchatlist(id,title);
+            drawchatlist(id, title);
             cnt1++;
             //selid = id;
             //panel2.Controls.Clear();
@@ -803,7 +835,7 @@ namespace InteractionApp
                         else newInsert(tstr);
                         newC = false;
                     }
-                    
+
                     insertReq(tstr);
                     requestView(tstr);
                     this.Cursor = Cursors.WaitCursor;
@@ -816,24 +848,24 @@ namespace InteractionApp
 
                     richTextBox1.Text = "";
                 }
-                
+
             }
         }
         public void ner()
         {
 
             // Load the pre-trained NER model
-          //  var loader = new SpacyLoader();
-        //    var model = loader.LoadLanguage("en_core_web_sm");
+            //  var loader = new SpacyLoader();
+            //    var model = loader.LoadLanguage("en_core_web_sm");
 
             // Process the input text
-       //     var doc = model.Process("Apple is looking at buying U.K. startup for $1 billion");
+            //     var doc = model.Process("Apple is looking at buying U.K. startup for $1 billion");
 
             // Extract the named entities
-      //      foreach (var ent in doc.Entities)
-      //      {
-      //          Console.WriteLine(ent.Text + " - " + ent.Label);
-      //      }
+            //      foreach (var ent in doc.Entities)
+            //      {
+            //          Console.WriteLine(ent.Text + " - " + ent.Label);
+            //      }
 
         }
         public void controlApp(string str)
@@ -880,9 +912,9 @@ namespace InteractionApp
                 }
             }
 
-            
-            int chromeC =-1 ;
-            int firefox=-1;
+
+            int chromeC = -1;
+            int firefox = -1;
             char[] delimiterChars = { ' ', ',', '.', ':', '\t' }; //define the delimiter characters
 
             string[] words = str.Split(delimiterChars); //split the sentence into an array of words
@@ -907,10 +939,10 @@ namespace InteractionApp
                         break;
                     }
                 }
-                if (chromeC != -1||firefox!=-1) break;
+                if (chromeC != -1 || firefox != -1) break;
             }
             temp = "";
-            if (chromeC == -1&&firefox==-1)
+            if (chromeC == -1 && firefox == -1)
             {
                 for (int i = words.Length - 1; i >= 0; i--)
                 {
@@ -935,7 +967,7 @@ namespace InteractionApp
                     if (chromeC != -1 || firefox != -1) break;
                 }
             }
-            if (chromeC==-1&&firefox==-1)
+            if (chromeC == -1 && firefox == -1)
             {
 
                 // Remove all non-letter characters from the input string
@@ -957,9 +989,9 @@ namespace InteractionApp
                         wordGroups.Add(wordGroup);
                     }
                 }
-                for(int i=0;i<wordGroups.Count;i++)
+                for (int i = 0; i < wordGroups.Count; i++)
                 {
-                    for(int j=0;j<sens.Length;j++)
+                    for (int j = 0; j < sens.Length; j++)
                     {
                         if (ComputeLevenshteinDistance(wordGroups[i], sens[j]) <= 3)
                         {
@@ -978,8 +1010,8 @@ namespace InteractionApp
                     if (chromeC != -1 || firefox != -1) break;
                 }
             }
-           
-            if (firefox==-1&&browser== "google" || chromeC!=-1)
+
+            if (firefox == -1 && browser == "google" || chromeC != -1)
             {
                 string chromedriverPath = @"C:\Users\KGH\.cache\selenium\chromedriver\win32\110.0.5481.77\chromedriver.exe";
 
@@ -996,7 +1028,7 @@ namespace InteractionApp
                 try
                 {
                     // Try to use the driver
-                    if (driver == null||driver!=null&&browser=="firefox")
+                    if (driver == null || driver != null && browser == "firefox")
                     {
                         ChromeOptions options = new ChromeOptions();
                         options.BinaryLocation = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
@@ -1043,7 +1075,7 @@ namespace InteractionApp
                     var chromeDriverService = ChromeDriverService.CreateDefaultService();
                     chromeDriverService.HideCommandPromptWindow = true;
                     driver = new ChromeDriver(chromeDriverService, options);
-                    
+
                     string searchstr = str;
                     driver.Navigate().GoToUrl("https://www.google.com/");
                     IWebElement searchBox = driver.FindElement(By.Name("q"));
@@ -1053,11 +1085,11 @@ namespace InteractionApp
                     searchBox.Submit();
                     browser = "google";
                 }
-              
+
             }
-            else if (chromeC==-1&&browser == "firefox" || firefox != -1)
+            else if (chromeC == -1 && browser == "firefox" || firefox != -1)
             {
-               //string chromedriverPath = @"C:\Users\KGH\.cache\selenium\chromedriver\win32\110.0.5481.77\chromedriver.exe";
+                //string chromedriverPath = @"C:\Users\KGH\.cache\selenium\chromedriver\win32\110.0.5481.77\chromedriver.exe";
                 try
                 {
                     // Try to use the driver
@@ -1096,7 +1128,7 @@ namespace InteractionApp
                     var firefoxdriverservice = FirefoxDriverService.CreateDefaultService(browserpath);
                     firefoxdriverservice.HideCommandPromptWindow = true;
                     driver = new FirefoxDriver(firefoxdriverservice);
-                    
+
                     string searchstr = str;
                     driver.Navigate().GoToUrl("https://www.google.com/");
                     IWebElement searchBox = driver.FindElement(By.Name("q"));
@@ -1124,7 +1156,7 @@ namespace InteractionApp
 
         private void button3_MouseEnter(object sender, EventArgs e)
         {
-            button3.BackColor =Color.FromArgb(32, 33, 35);
+            button3.BackColor = Color.FromArgb(32, 33, 35);
             this.Cursor = Cursors.Hand;
         }
 
@@ -1150,7 +1182,7 @@ namespace InteractionApp
             }
             /// string bar = new('#', (int)(fraction * 70));
 
-            string meter = "[" + bar.PadRight(60, '-') + "]:"+ (fraction * 100).ToString()+"%";
+            string meter = "[" + bar.PadRight(60, '-') + "]:" + (fraction * 100).ToString() + "%";
 
             for (int i = 1; i < 20; i++)
             {
@@ -1159,46 +1191,85 @@ namespace InteractionApp
             size[0] = (int)(fraction * 100);
             panel4.Controls.Clear();
             int k = (int)(fraction * 70);
-            for(int i=0;i<k%20;i++)
+            for (int i = 0; i < k % 20; i++)
             {
                 panel4.Controls.Add(pb1[i]);
             }
-         //   richTextBox1.Text = meter;
+            //   richTextBox1.Text = meter;
             //rep.Text += meter;
         }
+        private void WaveInOnDataAvailable(object sender, WaveInEventArgs e)
+        {
+            var options = new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                PropertyNameCaseInsensitive = true,
+            };
+            try
+            {
+                //writer.Write(e.Buffer, 0, e.BytesRecorded);
+
+                if (rec.AcceptWaveform(e.Buffer, e.BytesRecorded))
+                {
+                    //Console.WriteLine(rec.Result());
+                    string result = rec.Result();
+                    result = result.Replace("{\n  \"text\" : \"", "");
+                    result = result.Replace("\"\n}", "");
+                    ThreadHelperClass.SetText(this, richTextBox1, result);
+                    //var json = JsonSerializer.Deserialize<RecognitionResult>(result, options);
+                   // richTextBox1.Text = result;                   
+                }
+                //  else Console.WriteLine(rec.PartialResult());
+            }
+            catch { }
+        }
+
         private void button3_Click(object sender, EventArgs e)
         {
-            string fileName1 = @"C:\Users\KGH\PycharmProjects\speechRec\main.py";
-            string fileName2 = @"C:\Users\KGH\PycharmProjects\speechRec\main1.py";
-            Process p = new Process();
-            if (radioButton1.Checked)
-            {
-                p.StartInfo = new ProcessStartInfo(@"C:\Users\KGH\AppData\Local\Programs\Python\Python37\python.exe", fileName1)
-                {
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-            }
-            else
-            {
-                p.StartInfo = new ProcessStartInfo(@"C:\Users\KGH\AppData\Local\Programs\Python\Python37\python.exe", fileName2)
-                {
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-            }
             
+            WaveInEvent waveIn = new WaveInEvent();
+            waveIn.WaveFormat = new WaveFormat(16000, 1);
+            waveIn.DataAvailable += WaveInOnDataAvailable;
 
-            p.Start();
+            try
+            {
+                waveIn.StartRecording();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Microphone is not existed.");
+            }
+            //string fileName1 = @"C:\Users\CallPC-SI\PycharmProjects\pythonProject\main.py";
+            //string fileName2 = @"C:\Users\KGH\PycharmProjects\speechRec\main1.py";
+            //Process p = new Process();
+            //if (radioButton1.Checked)
+            //{
+            //    p.StartInfo = new ProcessStartInfo(@"C:\Users\CallPC-SI\AppData\Local\Programs\Python\Python310\python.exe", fileName1)
+            //    {
+            //        RedirectStandardOutput = true,
+            //        UseShellExecute = false,
+            //        CreateNoWindow = false,
+            //    };
 
-            string output = p.StandardOutput.ReadToEnd();
-            string newString = output.Replace("\n", "");
-            newString = newString.Replace("\r", "");
-            richTextBox1.Text = newString;
-            p.WaitForExit();
+            //}
+            //else
+            //{
+            //    p.StartInfo = new ProcessStartInfo(@"C:\Users\KGH\AppData\Local\Programs\Python\Python37\python.exe", fileName2)
+            //    {
+            //        RedirectStandardOutput = true,
+            //        UseShellExecute = false,
+            //        CreateNoWindow = true
+            //    };
+            //}
+
+
+            //p.Start();
+
+            //string output = p.StandardOutput.ReadToEnd();
+            //string newString = output.Replace("\n", "");
+            //newString = newString.Replace("\r", "");
+            //richTextBox1.Text = newString;
+            //p.WaitForExit();
 
         }
         private void Recognizer_RecognizeCompleted(object sender, RecognizeCompletedEventArgs e)
@@ -1208,7 +1279,7 @@ namespace InteractionApp
         }
         private void Recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
-            richTextBox1.Text +=e.Result.Text;
+            richTextBox1.Text += e.Result.Text;
             if (e.Result.Text == "chrome")
             {
                 string chromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe";
@@ -1225,12 +1296,12 @@ namespace InteractionApp
             {
                 //Process.Start("opera.exe");
             }
-            else if(e.Result.Text=="reacttutorial")
+            else if (e.Result.Text == "reacttutorial")
             {
                 string chromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe";
                 string url = "https://reacttutorial";
 
-                Process.Start(chromePath,url);
+                Process.Start(chromePath, url);
             }
         }
 
@@ -1255,23 +1326,23 @@ namespace InteractionApp
         public string speechtoText()
         {
 
-            string speechResult,pstr="";
+            string speechResult, pstr = "";
             using (IDeepSpeech sttClient = new DeepSpeech("deepspeech-0.9.3-models.pbmm"))
             {
                 string audioFile = "2830-3980-0043.wav";
                 var waveBuffer = new WaveBuffer(File.ReadAllBytes(audioFile));
-                using(var waveInfo=new WaveFileReader(audioFile))
+                using (var waveInfo = new WaveFileReader(audioFile))
                 {
-                   // DeepSpeechClient.Models.Metadata metaResult = sttClient.SpeechToTextWithMetadata(waveBuffer.ShortBuffer,
-                   //     Convert.ToUInt32(waveBuffer.MaxSize / 2), 1);
-                   //  speechResult = MetadataToString(metaResult.Transcripts[0]);
+                    // DeepSpeechClient.Models.Metadata metaResult = sttClient.SpeechToTextWithMetadata(waveBuffer.ShortBuffer,
+                    //     Convert.ToUInt32(waveBuffer.MaxSize / 2), 1);
+                    //  speechResult = MetadataToString(metaResult.Transcripts[0]);
                     speechResult = sttClient.SpeechToText(waveBuffer.ShortBuffer, Convert.ToUInt32(waveBuffer.MaxSize / 2));
 
                 }
                 waveBuffer.Clear();
 
             };
-           // richTextBox1.Text = speechResult;
+            // richTextBox1.Text = speechResult;
             return speechResult;
         }
         private void InitializeBuffer()
@@ -1302,7 +1373,7 @@ namespace InteractionApp
         private void Form1_SizeChanged(object se, EventArgs ee)
         {
             //MessageBox.Show(this.Bounds.Width.ToString());
-            
+
             panel2.Size = new Size(this.Width / 5, this.Height);
             panel1.Size = new Size(this.Width * 4 / 5 - 10, this.Height * 3 / 4);
             panel1.Location = new Point(this.Width / 5 - 1, 0);
@@ -1417,7 +1488,7 @@ namespace InteractionApp
                 pb1[i].Location = new Point(panel4.Width / 20 * i, 0);
                 // panel4.Controls.Add(pb1[i]);
             }
-            
+
             foreach (Panel p in panel2.Controls.OfType<Panel>())
             {
                 p.Hide();
@@ -1430,6 +1501,60 @@ namespace InteractionApp
             databaseConnect();
             databaseLoad();
 
+
+        }
+
+        private void openFileDialog1_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            string p = "model";
+            using (var fbd = new FolderBrowserDialog())
+            {
+                DialogResult result = fbd.ShowDialog();
+
+                if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    // string[] files = Directory.GetFiles(fbd.SelectedPath);
+                    p = fbd.SelectedPath;
+                    System.Windows.Forms.MessageBox.Show(fbd.SelectedPath, "Message");
+                    //Showing the loader  
+                    Task.Factory.StartNew(async () =>
+                    {
+                        //await Dispatcher.InvokeAsync(() =>
+                        //{
+                        //   // Spinner.Visibility = Visibility.Visible;
+
+                        //});
+                    });
+
+                    //Simulation Long Process  
+                  //  var TheRsult = dbms.Database.SqlQuery<object>("WAITFOR DELAY '00:00:04' SELECT GETDATE()").FirstOrDefault();
+
+                    model = new Model(p);
+                    rec = new VoskRecognizer(model, 16000f);
+                    Thread.Sleep(500);
+                    for (int i = 0; i < 1000; i++)
+                    {
+                        Console.Write(i);
+                    }
+                }
+
+            }
+        }
+
+        private void button4_MouseEnter(object sender, EventArgs e)
+        {
+            button4.BackgroundImage = Image.FromFile(System.IO.Path.Combine(System.Windows.Forms.Application.StartupPath, "icons8-model-64 (2).png"));
+
+        }
+
+        private void button4_MouseLeave(object sender, EventArgs e)
+        {
+            button4.BackgroundImage = Image.FromFile(System.IO.Path.Combine(System.Windows.Forms.Application.StartupPath, "icons8-model-64.png"));
 
         }
 
@@ -1454,5 +1579,29 @@ namespace InteractionApp
         }
 
     }
-
+    public static class ThreadHelperClass
+    {
+        delegate void SetTextCallback(Form f, Control ctrl, string text);
+        /// <summary>
+        /// Set text property of various controls
+        /// </summary>
+        /// <param name="form">The calling form</param>
+        /// <param name="ctrl"></param>
+        /// <param name="text"></param>
+        public static void SetText(Form form, Control ctrl, string text)
+        {
+            // InvokeRequired required compares the thread ID of the 
+            // calling thread to the thread ID of the creating thread. 
+            // If these threads are different, it returns true. 
+            if (ctrl.InvokeRequired)
+            {
+                SetTextCallback d = new SetTextCallback(SetText);
+                form.Invoke(d, new object[] { form, ctrl, text });
+            }
+            else
+            {
+                ctrl.Text = text;
+            }
+        }
+    }
 }

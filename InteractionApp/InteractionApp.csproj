@@ -142,10 +142,12 @@
     <Reference Include="Polly, Version=7.0.0.0, Culture=neutral, PublicKeyToken=c8a3ffc3f8f825cc, processorArchitecture=MSIL">
       <HintPath>..\packages\Polly.7.2.3\lib\net472\Polly.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="Renci.SshNet, Version=2016.1.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
       <HintPath>..\packages\SSH.NET.2016.1.0\lib\net40\Renci.SshNet.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Activities" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
@@ -225,12 +227,16 @@
     <Reference Include="VisioForge.Types, Version=15.1.12.0, Culture=neutral, PublicKeyToken=722de1c1c0a7f49e, processorArchitecture=MSIL">
       <HintPath>..\packages\VisioForge.DotNet.Core.TRIAL.15.1.12\lib\net472\VisioForge.Types.dll</HintPath>
     </Reference>
+    <Reference Include="Vosk, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Vosk.0.3.38\lib\netstandard2.0\Vosk.dll</HintPath>
+    </Reference>
     <Reference Include="WebDriver, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Selenium.WebDriver.4.8.1\lib\net47\WebDriver.dll</HintPath>
     </Reference>
     <Reference Include="WebDriver.Support, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Selenium.Support.4.8.1\lib\net47\WebDriver.Support.dll</HintPath>
     </Reference>
+    <Reference Include="WindowsBase" />
     <Reference Include="Xamarin.Forms.Core, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Xamarin.Forms.5.0.0.2578\lib\netstandard2.0\Xamarin.Forms.Core.dll</HintPath>
     </Reference>
@@ -298,6 +304,7 @@
     <Error Condition="!Exists('..\packages\Selenium.WebDriver.4.8.1\build\Selenium.WebDriver.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Selenium.WebDriver.4.8.1\build\Selenium.WebDriver.targets'))" />
     <Error Condition="!Exists('..\packages\Xamarin.Forms.5.0.0.2578\build\Xamarin.Forms.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.Forms.5.0.0.2578\build\Xamarin.Forms.props'))" />
     <Error Condition="!Exists('..\packages\Xamarin.Forms.5.0.0.2578\build\Xamarin.Forms.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xamarin.Forms.5.0.0.2578\build\Xamarin.Forms.targets'))" />
+    <Error Condition="!Exists('..\packages\Vosk.0.3.38\build\Vosk.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Vosk.0.3.38\build\Vosk.targets'))" />
   </Target>
   <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
@@ -305,4 +312,5 @@
   <Import Project="..\packages\System.Text.Json.6.0.0\build\System.Text.Json.targets" Condition="Exists('..\packages\System.Text.Json.6.0.0\build\System.Text.Json.targets')" />
   <Import Project="..\packages\Selenium.WebDriver.4.8.1\build\Selenium.WebDriver.targets" Condition="Exists('..\packages\Selenium.WebDriver.4.8.1\build\Selenium.WebDriver.targets')" />
   <Import Project="..\packages\Xamarin.Forms.5.0.0.2578\build\Xamarin.Forms.targets" Condition="Exists('..\packages\Xamarin.Forms.5.0.0.2578\build\Xamarin.Forms.targets')" />
+  <Import Project="..\packages\Vosk.0.3.38\build\Vosk.targets" Condition="Exists('..\packages\Vosk.0.3.38\build\Vosk.targets')" />
 </Project>
